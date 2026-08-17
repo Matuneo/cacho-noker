@@ -53,7 +53,7 @@ class TutorEngine(private val context: Context) {
             val active = requireNotNull(conversation) { "Primero instala y carga el modelo local" }
             val response = StringBuilder()
             active.sendMessageAsync(prompt).collect { message ->
-                response.append(message.text)
+                response.append(message.toString())
                 onUpdate(response.toString())
             }
             response.toString().trim()

@@ -57,34 +57,39 @@ class ModelManager(private val context: Context) {
         onUpdate: (ModelDownloadState) -> Unit
     ): File? = withContext(Dispatchers.IO) {
         val manager = context.getSystemService(DownloadManager::class.java)
-        while (true) {
+        var completed = false
+        var downloadedModel: File? = null
+        while (!completed) {
             val cursor = manager.query(DownloadManager.Query().setFilterById(downloadId))
             cursor.use {
                 if (!it.moveToFirst()) {
                     onUpdate(ModelDownloadState(message = "La descarga ya no está disponible"))
-                    return@withContext null
-                }
-                val status = it.int(DownloadManager.COLUMN_STATUS)
-                val downloaded = it.long(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-                val total = it.long(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
-                val progress = if (total > 0) ((downloaded * 100) / total).toInt() else 0
-                when (status) {
-                    DownloadManager.STATUS_SUCCESSFUL -> {
-                        onUpdate(ModelDownloadState(false, 100, "Modelo instalado", modelFile.absolutePath))
-                        return@withContext modelFile.takeIf { file -> file.exists() }
+                    completed = true
+                } else {
+                    val status = it.int(DownloadManager.COLUMN_STATUS)
+                    val downloaded = it.long(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
+                    val total = it.long(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
+                    val progress = if (total > 0) ((downloaded * 100) / total).toInt() else 0
+                    when (status) {
+                        DownloadManager.STATUS_SUCCESSFUL -> {
+                            downloadedModel = modelFile.takeIf { file -> file.exists() }
+                            onUpdate(ModelDownloadState(false, 100, "Modelo instalado", downloadedModel?.absolutePath))
+                            completed = true
+                        }
+                        DownloadManager.STATUS_FAILED -> {
+                            val reason = it.int(DownloadManager.COLUMN_REASON)
+                            onUpdate(ModelDownloadState(message = "Descarga fallida (código $reason)"))
+                            completed = true
+                        }
+                        DownloadManager.STATUS_PAUSED -> onUpdate(ModelDownloadState(true, progress, "Descarga pausada"))
+                        DownloadManager.STATUS_PENDING -> onUpdate(ModelDownloadState(true, progress, "Esperando conexión…"))
+                        else -> onUpdate(ModelDownloadState(true, progress, "Descargando modelo… $progress%"))
                     }
-                    DownloadManager.STATUS_FAILED -> {
-                        val reason = it.int(DownloadManager.COLUMN_REASON)
-                        onUpdate(ModelDownloadState(message = "Descarga fallida (código $reason)"))
-                        return@withContext null
-                    }
-                    DownloadManager.STATUS_PAUSED -> onUpdate(ModelDownloadState(true, progress, "Descarga pausada"))
-                    DownloadManager.STATUS_PENDING -> onUpdate(ModelDownloadState(true, progress, "Esperando conexión…"))
-                    else -> onUpdate(ModelDownloadState(true, progress, "Descargando modelo… $progress%"))
                 }
             }
-            delay(800)
+            if (!completed) delay(800)
         }
+        downloadedModel
     }
 
     suspend fun importModel(uri: Uri): File? = withContext(Dispatchers.IO) {
@@ -113,4 +118,3 @@ class ModelManager(private val context: Context) {
     private fun Cursor.int(column: String): Int = getInt(getColumnIndexOrThrow(column))
     private fun Cursor.long(column: String): Long = getLong(getColumnIndexOrThrow(column))
 }
-
