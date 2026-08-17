@@ -366,7 +366,10 @@ private fun HudChip(label: String, value: String, color: Color) {
 }
 
 @Composable
-private fun UnitTray(state: GameState, onSelect: (DefenderType) -> Unit) {
+private fun androidx.compose.foundation.layout.BoxScope.UnitTray(
+    state: GameState,
+    onSelect: (DefenderType) -> Unit
+) {
     Surface(modifier = Modifier.fillMaxWidth().height(94.dp).align(Alignment.BottomCenter), color = Color(0xED071522)) {
         LazyRow(
             modifier = Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 7.dp),
