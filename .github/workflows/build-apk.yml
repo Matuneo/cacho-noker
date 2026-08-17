@@ -89,6 +89,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           gh release create v1.0.0 dist/* \
             --title "CLONO Y MEJORO MI VOZ v1.0.0" \
