@@ -1,0 +1,9 @@
+<resources>
+    <color name="purple_900">#160B2B</color>
+    <color name="purple_800">#24123F</color>
+    <color name="purple_600">#7C4DFF</color>
+    <color name="purple_400">#A78BFA</color>
+    <color name="cyan_400">#22D3EE</color>
+    <color name="white">#FFFFFF</color>
+    <color name="muted">#C4B5D4</color>
+</resources>

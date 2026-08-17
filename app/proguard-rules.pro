@@ -1,0 +1,2 @@
+-keep class com.k2fsa.sherpa.onnx.** { *; }
+-keep class com.clonoymejoromivoz.audio.Mp3Native { *; }

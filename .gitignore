@@ -1,0 +1,10 @@
+.gradle/
+.idea/
+local.properties
+**/build/
+app/src/main/assets/pocket/
+app/src/main/assets/supertonic/
+app/src/main/jniLibs/
+app/src/main/cpp/libmp3lame/
+dist/
+*.iml
