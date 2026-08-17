@@ -67,3 +67,28 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+
+  release:
+    if: github.event_name == 'push' && github.event.head_commit.message == 'Publicar descarga directa de Bloqueo Nacional'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Descargar APK compilado
+        uses: actions/download-artifact@v4
+        with:
+          name: BLOQUEO-NACIONAL-APK
+          path: entrega
+
+      - name: Crear descarga pública directa
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          gh release create bloqueo-nacional-v1.0.0 \
+            entrega/BLOQUEO-NACIONAL-LA-MARCHA-FINAL-v1.0.0.apk \
+            --title "Bloqueo Nacional: La Marcha Final v1.0.0" \
+            --notes "APK Android compilado y verificado. Juego original de estrategia por carriles con funcionamiento sin internet. Compatible con Android 9 o superior y teléfonos ARM64."
