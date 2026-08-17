@@ -47,7 +47,16 @@ jobs:
 
       - name: Compilar APK
         shell: bash
-        run: gradle --no-daemon --stacktrace -p profesor-ia-android :app:assembleDebug
+        run: |
+          set +e
+          gradle --no-daemon --stacktrace -p profesor-ia-android :app:assembleDebug 2>&1 | tee build.log
+          build_status=${PIPESTATUS[0]}
+          if [ "$build_status" -ne 0 ]; then
+            grep -E '(^e: |^error: |FAILURE:|What went wrong|Execution failed|Could not resolve|Could not find)' build.log \
+              | tail -n 30 \
+              | while IFS= read -r line; do echo "::error::$line"; done
+          fi
+          exit "$build_status"
 
       - name: Preparar descarga
         shell: bash
